@@ -31,18 +31,34 @@ fn read(mut line: &[u8]) -> Box<[usize]> {
     result.into()
 }
 
+fn calc1(time: usize, distance: usize) -> usize {
+    let mut low = 1;
+    let mut high = time.div_ceil(2);
+    if high * high < distance {
+        return 0;
+    }
+    while high > low + 1 {
+        let mid = (high - low) / 2 + low;
+        if mid * (time - mid) <= distance {
+            low = mid;
+        } else {
+            high = mid;
+        }
+    }
+    low = if low * (time - low) <= distance {
+        high
+    } else {
+        low
+    };
+    time - low * 2 + 1
+}
+
 fn calc(mut input: impl Iterator<Item = impl AsRef<str>>) -> usize {
     let times = read(input.next().unwrap().as_ref().as_bytes());
     let distances = read(input.next().unwrap().as_ref().as_bytes());
     let mut product = 1;
     for (time, distance) in times.iter().zip(distances.iter()) {
-        let mut counts = 0;
-        for i in 0..=*time {
-            if (time - i) * i > *distance {
-                counts += 1;
-            }
-        }
-        product *= counts;
+        product *= calc1(*time, *distance);
     }
     product
 }
