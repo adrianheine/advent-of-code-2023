@@ -1,6 +1,9 @@
 #!/bin/sh
 set -e
 
+RED='\033[0;31m'
+NC='\033[0m'
+
 run_test() {
   DAY=$1
   PART=$2
@@ -13,7 +16,7 @@ run_test() {
   then
       EXPECTED=$(cat results/$TEST)
       echo -n "$TEST: $EXPECTED = $RESULT"
-      test "$EXPECTED" = "$RESULT" && echo " OK" || echo " FAIL"
+      test "$EXPECTED" = "$RESULT" && echo " OK" || printf " ${RED}FAIL${NC}\n"
   else
       printf "%s: %s correct? " "$TEST" "$RESULT"
       read -r REPLY
