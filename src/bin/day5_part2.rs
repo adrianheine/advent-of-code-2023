@@ -68,7 +68,7 @@ fn calc(mut input: impl Iterator<Item = impl AsRef<str>>) -> usize {
         let src_range_end = src_range_start + range_length;
 
         let end_of_range_idx =
-            value_to_seed.partition_point(|(start, _, _)| *start <= src_range_end);
+            value_to_seed.partition_point(|(start, _, _)| *start < src_range_end);
         let begin_of_range_idx = value_to_seed[..end_of_range_idx]
             .partition_point(|(start, len, _)| start + len < src_range_start);
         let mut unchanged_ranges = Vec::with_capacity(end_of_range_idx - begin_of_range_idx);
@@ -80,7 +80,9 @@ fn calc(mut input: impl Iterator<Item = impl AsRef<str>>) -> usize {
             }
             next_value_to_seed.push((
                 dest_range_start + start.saturating_sub(src_range_start),
-                (src_range_end - start).min(len - offset_in_range),
+                (src_range_end - start)
+                    .min(len - offset_in_range)
+                    .min(range_length),
                 seed + offset_in_range,
             ));
             let tail_of_range = (start + len).saturating_sub(src_range_end);
@@ -142,5 +144,20 @@ humidity-to-location map:
             .lines()
         ),
         46
+    );
+    assert_eq!(
+        calc(
+            "seeds: 6 2 9 5
+
+map that moves a chunk to the front:
+3 10 2
+7 6 3
+
+map that doesn't capture anything:
+1 6 1
+"
+            .lines()
+        ),
+        3
     );
 }
