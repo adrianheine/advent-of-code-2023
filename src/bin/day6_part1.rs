@@ -32,25 +32,14 @@ fn read(mut line: &[u8]) -> Box<[usize]> {
 }
 
 fn calc1(time: usize, distance: usize) -> usize {
-    let mut low = 1;
-    let mut high = time.div_ceil(2);
-    if high * high < distance {
-        return 0;
-    }
-    while high > low + 1 {
-        let mid = (high - low) / 2 + low;
-        if mid * (time - mid) <= distance {
-            low = mid;
-        } else {
-            high = mid;
-        }
-    }
-    low = if low * (time - low) <= distance {
-        high
+    let low =
+        time.div_ceil(2) - ((time.div_ceil(2).pow(2) - distance) as f32).sqrt().floor() as usize;
+    time - if low * (time - low) <= distance {
+        low + 1
     } else {
         low
-    };
-    time - low * 2 + 1
+    } * 2
+        + 1
 }
 
 fn calc(mut input: impl Iterator<Item = impl AsRef<str>>) -> usize {
