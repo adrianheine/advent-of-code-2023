@@ -14,6 +14,49 @@ fn read_field(field: &u8) -> usize {
     }
 }
 
+fn opposite(dir: usize) -> usize {
+    match dir {
+        1 => 4,
+        2 => 8,
+        4 => 1,
+        8 => 2,
+        _ => unreachable!(),
+    }
+}
+
+fn vec(dir: usize) -> (isize, isize) {
+    match dir {
+        1 => (-1, 0),
+        2 => (0, 1),
+        4 => (1, 0),
+        8 => (0, -1),
+        _ => unreachable!(),
+    }
+}
+
+fn maybe_do_step(
+    pos: (usize, usize),
+    bounds: (usize, usize),
+    dir: usize,
+) -> Option<((usize, usize), usize)> {
+    let v = vec(dir);
+    if (pos.0 > 0 || v.0 >= 0)
+        && (pos.1 > 0 || v.1 >= 0)
+        && (pos.0 < bounds.0 - 1 || v.0 <= 0)
+        && (pos.1 < bounds.1 - 1 || v.1 <= 0)
+    {
+        Some((
+            (
+                (pos.0 as isize + v.0) as usize,
+                (pos.1 as isize + v.1) as usize,
+            ),
+            opposite(dir),
+        ))
+    } else {
+        None
+    }
+}
+
 fn write_field(field: &usize) -> u8 {
     match field {
         5 => b'|',
@@ -45,73 +88,42 @@ fn calc(input: impl Iterator<Item = impl AsRef<str>>) -> usize {
         }
         y += 1;
     }
+    let bounds = (fields.len(), fields[0].len());
     let mut cur = start.unwrap();
-    let mut dir = if cur.1 > 0 && (fields[cur.0][cur.1 - 1] & 2 == 2) {
-        8
-    } else if cur.1 < fields[cur.0].len() && (fields[cur.0][cur.1 + 1] & 8 == 8) {
-        2
-    } else if cur.0 > 0 && (fields[cur.0 - 1][cur.1] & 4 == 4) {
-        1
-    } else if cur.0 < fields.len() && (fields[cur.0 + 1][cur.1] & 1 == 1) {
-        4
-    } else {
-        unreachable!()
-    };
+    let mut dir = [1, 2, 4, 8]
+        .into_iter()
+        .find(|dir| {
+            maybe_do_step(cur, bounds, *dir)
+                .map(|(next, opposite_dir)| fields[next.0][next.1] & opposite_dir > 0)
+                .unwrap_or(false)
+        })
+        .unwrap();
     fields[cur.0][cur.1] |= dir;
     // 32 => part of the loop
     // 64 => out of the loop, seen
-    // 1 | 2 | 4 | 8 => part of the loop, seen
-    let mut field_tags = vec![vec![0; fields[0].len()]; fields.len()];
+    // 1 | 2 | 4 | 8 => part of the loop, seen from this direction
+    let mut field_tags = vec![vec![0; bounds.1]; bounds.0];
     let mut loop_length = 0;
     loop {
         loop_length += 1;
         field_tags[cur.0][cur.1] = 32;
-        (cur, dir) = match dir {
-            8 => ((cur.0, cur.1 - 1), 2),
-            2 => ((cur.0, cur.1 + 1), 8),
-            1 => ((cur.0 - 1, cur.1), 4),
-            4 => ((cur.0 + 1, cur.1), 1),
-            _ => unreachable!(),
-        };
-        let prev_dir = dir;
-        dir = fields[cur.0][cur.1] & !dir;
+        let prev_dir;
+        (cur, prev_dir) = maybe_do_step(cur, bounds, dir).unwrap();
+        dir = fields[cur.0][cur.1] & !prev_dir;
         if dir & 16 > 0 {
             fields[cur.0][cur.1] |= prev_dir;
             fields[cur.0][cur.1] &= !16;
             break;
         }
     }
-    let mut paths_to_take = vec![];
-    paths_to_take.push(((0, 0), 2, if fields[0][0] == 6 { 4 } else { 0 }));
-    paths_to_take.push(((0, 0), 4, if fields[0][0] == 6 { 2 } else { 0 }));
+    let mut paths_to_take = vec![
+        ((0, 0), 2, if fields[0][0] == 6 { 4 } else { 0 }),
+        ((0, 0), 4, if fields[0][0] == 6 { 2 } else { 0 }),
+    ];
     let mut count = 0;
     while let Some((out_cur, out_dir, mut closed_at)) = paths_to_take.pop() {
-        let (cur, dir) = match out_dir {
-            8 => {
-                if out_cur.1 == 0 {
-                    continue;
-                }
-                ((out_cur.0, out_cur.1 - 1), 2)
-            }
-            2 => {
-                if out_cur.1 == field_tags[0].len() - 1 {
-                    continue;
-                }
-                ((out_cur.0, out_cur.1 + 1), 8)
-            }
-            1 => {
-                if out_cur.0 == 0 {
-                    continue;
-                }
-                ((out_cur.0 - 1, out_cur.1), 4)
-            }
-            4 => {
-                if out_cur.0 == field_tags.len() - 1 {
-                    continue;
-                }
-                ((out_cur.0 + 1, out_cur.1), 1)
-            }
-            _ => unreachable!(),
+        let Some((cur, dir)) = maybe_do_step(out_cur, bounds, out_dir) else {
+            continue;
         };
         let mut new_closed_at: Box<dyn Fn(usize) -> usize> = Box::new(|_| 0);
         match field_tags[cur.0][cur.1] {
