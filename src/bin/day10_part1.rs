@@ -1,6 +1,6 @@
 use std::io;
 
-fn read_field(field: &u8) -> usize {
+fn read_field(field: u8) -> usize {
     match field {
         b'|' => 1 | 4,
         b'-' => 2 | 8,
@@ -16,21 +16,17 @@ fn read_field(field: &u8) -> usize {
 
 fn calc(input: impl Iterator<Item = impl AsRef<str>>) -> isize {
     let mut start = None;
-    let mut y = 0;
     let mut fields = vec![];
-    for line in input {
+    for (y, line) in input.enumerate() {
         let line = line.as_ref().as_bytes();
         fields.push(vec![]);
-        let mut x = 0;
-        for c in line {
-            let field = read_field(c);
+        for (x, c) in line.into_iter().enumerate() {
+            let field = read_field(*c);
             if field & 16 == 16 {
                 start = Some((y, x));
             }
             fields[y].push(field);
-            x += 1;
         }
-        y += 1;
     }
     let mut cur = start.unwrap();
     let mut dir = if cur.1 > 0 && (fields[cur.0][cur.1 - 1] & 2 == 2) {

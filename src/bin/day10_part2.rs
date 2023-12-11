@@ -1,6 +1,6 @@
 use std::io;
 
-fn read_field(field: &u8) -> usize {
+fn read_field(field: u8) -> usize {
     match field {
         b'|' => 1 | 4,
         b'-' => 2 | 8,
@@ -57,7 +57,7 @@ fn maybe_do_step(
     }
 }
 
-fn write_field(field: &usize) -> u8 {
+fn write_field(field: usize) -> u8 {
     match field {
         5 => b'|',
         10 => b'-',
@@ -73,20 +73,16 @@ fn write_field(field: &usize) -> u8 {
 fn calc(input: impl Iterator<Item = impl AsRef<str>>) -> usize {
     let mut start = None;
     let mut fields = vec![];
-    let mut y = 0;
-    for line in input {
+    for (y, line) in input.enumerate() {
         let line = line.as_ref().as_bytes();
         fields.push(vec![]);
-        let mut x = 0;
-        for c in line {
-            let field = read_field(c);
+        for (x, c) in line.iter().enumerate() {
+            let field = read_field(*c);
             if field & 16 == 16 {
                 start = Some((y, x));
             }
             fields[y].push(field);
-            x += 1;
         }
-        y += 1;
     }
     let bounds = (fields.len(), fields[0].len());
     let mut cur = start.unwrap();
@@ -94,8 +90,7 @@ fn calc(input: impl Iterator<Item = impl AsRef<str>>) -> usize {
         .into_iter()
         .find(|dir| {
             maybe_do_step(cur, bounds, *dir)
-                .map(|(next, opposite_dir)| fields[next.0][next.1] & opposite_dir > 0)
-                .unwrap_or(false)
+                .is_some_and(|(next, opposite_dir)| fields[next.0][next.1] & opposite_dir > 0)
         })
         .unwrap();
     fields[cur.0][cur.1] |= dir;
@@ -147,8 +142,7 @@ fn calc(input: impl Iterator<Item = impl AsRef<str>>) -> usize {
                         new_closed_at = Box::new(|_| out_dir);
                     } else {
                         closed_at = 0;
-                        new_closed_at =
-                            Box::new(move |d| if op & d > 0 { 0 } else { field.clone() });
+                        new_closed_at = Box::new(move |d| if op & d > 0 { 0 } else { field });
                     }
                 }
             }
@@ -172,7 +166,7 @@ fn calc(input: impl Iterator<Item = impl AsRef<str>>) -> usize {
                     if *tag & 32 == 0 && *tag != 64 {
                         'I'
                     } else {
-                        write_field(field) as char
+                        write_field(*field) as char
                     }
                 );
                 if *tag & 32 > 0 {

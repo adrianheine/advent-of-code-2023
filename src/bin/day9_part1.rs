@@ -13,7 +13,7 @@ fn get_number(line: &mut &[u8]) -> isize {
     let mut idx = 0;
     let neg = line[0] == b'-';
     if neg {
-        idx += 1
+        idx += 1;
     }
     while idx < line.len() && line[idx].is_ascii_digit() {
         n = n * 10 + (line[idx] - b'0') as isize;
