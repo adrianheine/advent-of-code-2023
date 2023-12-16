@@ -9,8 +9,8 @@ run_test() {
   PART=$2
   TEST=${DAY}_part${PART}
   set +e
-  RESULT=$(cargo -q run --bin $TEST < $i 2>/dev/null)
-  test $? != 0 && return 1
+  test -f src/bin/$TEST.rs || return 1
+  RESULT=$(time -f "%U %M" cargo -q run --bin $TEST < $i)
   set -e
   if [ -f results/$TEST ]
   then
