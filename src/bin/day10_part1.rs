@@ -20,7 +20,7 @@ fn calc(input: impl Iterator<Item = impl AsRef<str>>) -> isize {
     for (y, line) in input.enumerate() {
         let line = line.as_ref().as_bytes();
         fields.push(vec![]);
-        for (x, c) in line.into_iter().enumerate() {
+        for (x, c) in line.iter().enumerate() {
             let field = read_field(*c);
             if field & 16 == 16 {
                 start = Some((y, x));

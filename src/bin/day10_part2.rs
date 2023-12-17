@@ -136,14 +136,12 @@ fn calc(input: impl Iterator<Item = impl AsRef<str>>) -> usize {
                 if field == 5 || field == 10 {
                     closed_at = (closed_at | out_dir) & !field;
                     new_closed_at = Box::new(move |d| if op & d > 0 { 0 } else { closed_at });
+                } else if (closed_at & !out_dir) & op > 0 {
+                    closed_at |= out_dir | op;
+                    new_closed_at = Box::new(|_| out_dir);
                 } else {
-                    if (closed_at & !out_dir) & op > 0 {
-                        closed_at |= out_dir | op;
-                        new_closed_at = Box::new(|_| out_dir);
-                    } else {
-                        closed_at = 0;
-                        new_closed_at = Box::new(move |d| if op & d > 0 { 0 } else { field });
-                    }
+                    closed_at = 0;
+                    new_closed_at = Box::new(move |d| if op & d > 0 { 0 } else { field });
                 }
             }
         }

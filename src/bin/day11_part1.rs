@@ -9,7 +9,7 @@ fn calc(input: impl Iterator<Item = impl AsRef<str>>) -> usize {
         let mut line_empty = true;
         for (x, c) in line.iter().enumerate() {
             if column_empty.len() <= x {
-                column_empty.push(true)
+                column_empty.push(true);
             }
             if *c == b'#' {
                 galaxies.push((y, x));

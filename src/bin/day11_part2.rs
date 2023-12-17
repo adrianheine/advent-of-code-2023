@@ -9,7 +9,7 @@ fn calc(input: impl Iterator<Item = impl AsRef<str>>) -> usize {
         let mut line_empty = true;
         for (x, c) in line.iter().enumerate() {
             if column_empty.len() <= x {
-                column_empty.push(true)
+                column_empty.push(true);
             }
             if *c == b'#' {
                 galaxies.push((y, x));
@@ -23,9 +23,9 @@ fn calc(input: impl Iterator<Item = impl AsRef<str>>) -> usize {
     for (idx, galaxy) in galaxies.iter().enumerate() {
         for other in &galaxies[idx + 1..] {
             let (min, max) = (other.0.min(galaxy.0), other.0.max(galaxy.0));
-            sum += max - min + lines_empty[min..max].iter().filter(|x| **x).count() * 999999;
+            sum += max - min + lines_empty[min..max].iter().filter(|x| **x).count() * 999_999;
             let (min, max) = (other.1.min(galaxy.1), other.1.max(galaxy.1));
-            sum += max - min + column_empty[min..max].iter().filter(|x| **x).count() * 999999;
+            sum += max - min + column_empty[min..max].iter().filter(|x| **x).count() * 999_999;
         }
     }
     sum
@@ -52,6 +52,6 @@ fn test() {
 "
             .lines()
         ),
-        82000210
+        82_000_210
     );
 }
