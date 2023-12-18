@@ -10,7 +10,7 @@ run_test() {
   TEST=${DAY}_part${PART}
   set +e
   test -f src/bin/$TEST.rs || return 1
-  RESULT=$(time -f "%U %M" cargo -q run --bin $TEST < $i)
+  RESULT=$(time -f "%U %M" cargo -q run --release --bin $TEST < $i)
   set -e
   if [ -f results/$TEST ]
   then
@@ -24,7 +24,7 @@ run_test() {
   fi
 }
 
-cargo test
+cargo test --release
 
 for i in $(ls input/* -r)
 do
