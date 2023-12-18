@@ -92,7 +92,7 @@ fn test() {
 "
             .lines()
         ),
-        467835
+        467_835
     );
     assert_eq!(calc("x1".lines()), 0);
 }
