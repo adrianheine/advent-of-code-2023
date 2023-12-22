@@ -33,7 +33,7 @@ struct Path {
 
 impl Path {
     fn cost_per_field(&self) -> usize {
-        (self.sum * 1000) / (self.pos.0 + self.pos.1 + 1).pow(2)
+        (self.sum * 100) / (self.pos.0 + self.pos.1 + 1)
     }
 }
 
@@ -162,27 +162,6 @@ fn calc(input: impl Iterator<Item = impl AsRef<str>>) -> usize {
         }
         if path.pos == (bounds.0 - 1, bounds.1 - 1) && path.straight >= 3 {
             min = path.sum;
-            eprintln!("RESULT: {min}");
-            /*
-            if min <= 105 {
-              //eprintln!("{quickest:?}");
-                for (y, row) in fields.iter().enumerate() {
-                    for (x, field) in row.iter().enumerate() {
-                        let e = 27 as char;
-
-                        if path.history.contains(&(y, x)) {
-                            eprint!("{e}[0;31m");
-                        }
-                        eprint!("{}", (*field + b'0') as char);
-                        if path.history.contains(&(y, x)) {
-                            eprint!("{e}[0m");
-                        }
-                    }
-                    eprintln!();
-                }
-                eprintln!();
-            }
-            */
             continue;
         }
         if let Some(p) = maybe_next_path(&path, opposite(path.in_dir), &fields, &mut quickest) {
